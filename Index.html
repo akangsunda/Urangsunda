@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Aksara Sunda - High Score Edition</title>
+    <style>
+        :root { --primary: #6c5ce7; --secondary: #a29bfe; --danger: #ff7675; --success: #55efc4; }
+        body { font-family: 'Segoe UI', sans-serif; background: #dfe6e9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .game-container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); text-align: center; width: 360px; }
+        
+        .timer-bar { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin-bottom: 15px; overflow: hidden; }
+        #timer-fill { width: 100%; height: 100%; background: var(--primary); transition: width 0.1s linear; }
+
+        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
+        .badge { background: #2d3436; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; }
+        
+        .aksara-display { font-size: 100px; margin: 15px 0; color: #2d3436; min-height: 130px; line-height: 1.2; }
+        .hint { font-size: 12px; color: #636e72; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button { padding: 15px; font-size: 18px; cursor: pointer; border: 2px solid var(--secondary); background: white; border-radius: 12px; transition: 0.2s; font-weight: bold; color: var(--primary); }
+        button:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .high-score-section { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #ccc; font-size: 14px; color: #2d3436; }
+        .message { margin-top: 15px; height: 25px; font-weight: bold; }
+        .correct { color: #27ae60; }
+        .wrong { color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="header-info">
+        <span class="badge">LVL <span id="level-display">1</span></span>
+        <span id="lives">❤️❤️❤️</span>
+        <span class="badge">SKOR: <span id="score">0</span></span>
+    </div>
+    
+    <div class="timer-bar"><div id="timer-fill"></div></div>
+    <div class="hint" id="type-hint">Persiapan...</div>
+    <div class="aksara-display" id="aksara-char">--</div>
+    
+    <div class="options" id="options-container"></div>
+    <div class="message" id="message">Gaskeun!</div>
+
+    <div class="high-score-section">
+        🏆 Skor Tertinggi: <span id="high-score-display">0</span>
+    </div>
+</div>
+
+<script>
+    const database = {
+        ngalagena: [
+            { c: 'ᮊ', a: 'Ka' }, { c: 'ᮌ', a: 'Ga' }, { c: 'ᮍ', a: 'Nga' },
+            { c: 'ᮎ', a: 'Ca' }, { c: 'ᮏ', a: 'Ja' }, { c: 'ᮑ', a: 'Nya' },
+            { c: 'ᮒ', a: 'Ta' }, { c: 'ᮓ', a: 'Da' }, { c: 'ᮔ', a: 'Na' },
+            { c: 'ᮕ', a: 'Pa' }, { c: 'ᮘ', a: 'Ba' }, { c: 'ᮙ', a: 'Ma' }
+        ],
+        swara: [
+            { c: 'ᮃ', a: 'A' }, { c: 'ᮄ', a: 'I' }, { c: 'ᮅ', a: 'U' },
+            { c: 'ᮆ', a: 'É' }, { c: 'ᮇ', a: 'O' }, { c: 'ᮈ', a: 'E' }, { c: 'ᮉ', a: 'Eu' }
+        ],
+        rarangken: [
+            { c: 'ᮊᮤ', a: 'Ki' }, { c: 'ᮊᮥ', a: 'Ku' }, { c: 'ᮊᮦ', a: 'Ké' },
+            { c: 'ᮊᮧ', a: 'Ko' }, { c: 'ᮊᮨ', a: 'Ke' }, { c: 'ᮊᮩ', a: 'Keu' }
+        ]
+    };
+
+    let score = 0, lives = 3, level = 1, timeLeft = 100, timerId = null, currentQ = {};
+    let highScore = localStorage.getItem('sundaHighScore') || 0;
+
+    function startGame() {
+        document.getElementById('high-score-display').innerText = highScore;
+        updateStats();
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        clearInterval(timerId);
+        timeLeft = 100;
+        
+        let pool = [...database.ngalagena];
+        let type = "Ngalagena";
+        
+        if (level >= 2) { pool = [...pool, ...database.swara]; type = "Ngalagena + Swara"; }
+        if (level >= 3) { pool = [...pool, ...database.rarangken]; type = "Campuran + Rarangken"; }
+
+        currentQ = pool[Math.floor(Math.random() * pool.length)];
+        document.getElementById('aksara-char').innerText = currentQ.c;
+        document.getElementById('type-hint').innerText = type;
+        
+        let speed = Math.max(12, 80 - (level * 7));
+        timerId = setInterval(() => {
+            timeLeft -= 1;
+            document.getElementById('timer-fill').style.width = timeLeft + "%";
+            if (timeLeft <= 0) handleResult(false, "Waktu Habis! ⏰");
+        }, speed);
+
+        generateOptions(currentQ.a, pool);
+    }
+
+    function generateOptions(correct, pool) {
+        let choices = [correct];
+        while (choices.length < 4) {
+            let rand = pool[Math.floor(Math.random() * pool.length)].a;
+            if (!choices.includes(rand)) choices.push(rand);
+        }
+        choices.sort(() => Math.random() - 0.5);
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        choices.forEach(c => {
+            const btn = document.createElement('button');
+            btn.innerText = c;
+            btn.onclick = () => handleResult(c === correct);
+            container.appendChild(btn);
+        });
+    }
+
+    function handleResult(isCorrect, customMsg) {
+        clearInterval(timerId);
+        const msg = document.getElementById('message');
+        
+        if (isCorrect) {
+            score += 10;
+            level = Math.floor(score / 50) + 1;
+            msg.innerText = "Alus! +10 🌟";
+            msg.className = "message correct";
+            setTimeout(nextQuestion, 600);
+        } else {
+            lives--;
+            msg.innerText = customMsg || "Salah! Éta mah '" + currentQ.a + "'";
+            msg.className = "message wrong";
+            if (lives > 0) setTimeout(nextQuestion, 1200);
+            else endGame();
+        }
+        updateStats();
+    }
+
+    function endGame() {
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('sundaHighScore', highScore);
+            alert("NEW HIGH SCORE! 🎉\nSkor kamu: " + score);
+        } else {
+            alert("GAME OVER!\nSkor kamu: " + score);
+        }
+        resetGame();
+    }
+
+    function resetGame() {
+        score = 0; lives = 3; level = 1;
+        startGame();
+    }
+
+    function updateStats() {
+        document.getElementById('score').innerText = score;
+        document.getElementById('level-display').innerText = level;
+        document.getElementById('lives').innerText = "❤️".repeat(lives);
+        document.getElementById('high-score-display').innerText = highScore;
+    }
+
+    startGame();
+</script>
+</body>
+</html>
