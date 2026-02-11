@@ -3,64 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Aksara Sunda - Rules Global</title>
+    <title>Game Aksara Sunda - Full Ngalagena & Rarangken</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #6c5ce7; --secondary: #a29bfe; --danger: #ff7675; --success: #55efc4; }
-        body { font-family: 'Segoe UI', sans-serif; background: #dfe6e9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; flex-direction: column; }
-        #name-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        input { width: 85%; padding: 12px; margin: 15px 0; border-radius: 10px; border: 2px solid #eee; text-align: center; font-size: 16px; outline: none; }
-        .game-container { background: white; padding: 25px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); text-align: center; width: 340px; position: relative; }
-        .timer-bar { width: 100%; height: 12px; background: #eee; border-radius: 6px; margin-bottom: 15px; overflow: hidden; }
-        #timer-fill { width: 100%; height: 100%; background: linear-gradient(to right, var(--secondary), var(--primary)); transition: width 0.1s linear; }
-        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
-        .badge { background: #2d3436; color: white; padding: 5px 12px; border-radius: 15px; font-size: 11px; }
-        .aksara-display { font-size: 55px; margin: 15px 0; color: #2d3436; min-height: 140px; display: flex; align-items: center; justify-content: center; word-break: break-all; padding: 10px; line-height: 1.2; }
-        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 14px 8px; font-size: 14px; cursor: pointer; border: 2px solid #f0f0f0; background: #f9f9f9; border-radius: 12px; transition: 0.2s; font-weight: bold; color: #444; }
-        button:hover { background: var(--primary); color: white; transform: translateY(-2px); }
-        .ranking-section { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #ccc; font-size: 13px; text-align: left; }
-        .ranking-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f8f8f8; }
-        #goal-notification { margin-top: 15px; padding: 10px; background: #fff9db; border: 1px solid #fab005; border-radius: 10px; font-size: 12px; color: #856404; font-weight: bold; }
-        .brand { font-size: 9px; color: #b2bec3; margin-top: 15px; font-weight: bold; letter-spacing: 1px; }
+        :root { --primary: #6c5ce7; --secondary: #a29bfe; --danger: #ff7675; --success: #55efc4; --gold: #f1c40f; }
+        body { font-family: 'Segoe UI', sans-serif; background: #dfe6e9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; flex-direction: column; overflow-x: hidden; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 100; animation: fadeIn 0.5s; }
+        #modal-ranking { display: none; background: rgba(45, 52, 54, 0.98); z-index: 200; flex-direction: column; }
+        .modal-content { background: white; padding: 30px; border-radius: 25px; text-align: center; width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
+        .game-container { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); text-align: center; width: 340px; position: relative; border: 4px solid white; }
+        
+        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .badge { background: #2d3436; color: white; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        
+        .timer-bar { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+        #timer-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 0.1s linear; }
+
+        .question-label { font-size: 12px; color: #636e72; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+        .aksara-display { font-size: 50px; margin: 10px 0; color: #2d3436; min-height: 120px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 20px; padding: 10px; border: 2px dashed #dfe6e9; transition: all 0.3s; }
+        
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button { padding: 15px 10px; font-size: 18px; cursor: pointer; border: 2px solid #f0f0f0; background: white; border-radius: 15px; transition: 0.3s; font-weight: bold; color: #2d3436; box-shadow: 0 4px 0 #eee; }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        button:hover { border-color: var(--primary); color: var(--primary); }
+
+        .ranking-section { margin-top: 25px; padding: 15px; background: #fcfcfc; border-radius: 20px; border: 1px solid #eee; }
+        .ranking-title { font-weight: 800; font-size: 12px; color: var(--primary); margin-bottom: 10px; letter-spacing: 1px; animation: glowText 2s infinite alternate; }
+        .ranking-item { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #f1f1f1; }
+        
+        #goal-notification { margin-top: 15px; padding: 12px; background: linear-gradient(135deg, #fff9db, #fff3bf); border: 1px solid var(--gold); border-radius: 15px; font-size: 12px; color: #856404; font-weight: 800; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.2); }
+
+        @keyframes glowText { from { text-shadow: 0 0 2px #fff, 0 0 5px var(--secondary); } to { text-shadow: 0 0 5px #fff, 0 0 15px var(--primary); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="name-modal">
+<div id="name-modal" class="modal">
     <div class="modal-content">
-        <h2 style="margin-top:0; color:var(--primary)">Rules Global</h2>
-        <p style="font-size:14px; color:#666">Wilujeng Sumping!<br>Masukkan Nama Kamu:</p>
+        <h2 style="color:var(--primary); margin:0">AKSARA GLOBAL</h2>
+        <p style="font-size:14px; color:#636e72">Masukkan Nama Anda:</p>
         <input type="text" id="player-name-input" placeholder="Nami..." maxlength="12">
-        <button onclick="savePlayerName()" style="width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight:bold; cursor:pointer;">GASKEUN!</button>
+        <button onclick="savePlayerName()" style="width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 15px; box-shadow: 0 4px 0 #5849c4;">MULAI MAÉN</button>
+    </div>
+</div>
+
+<div id="modal-ranking" class="modal">
+    <h2 id="final-status" style="color:white; font-size:32px;">SKOR: 0</h2>
+    <div class="modal-content">
+        <h3 style="color:var(--primary); margin-top:0">🌎 TOP GLOBAL</h3>
+        <ul id="final-ranking-list" style="list-style:none; padding:0; margin:0; text-align:left;"></ul>
+        <button onclick="location.reload()" style="width:100%; margin-top:20px; background:var(--success); color:white; border:none; padding:15px; border-radius:15px; font-weight:bold; box-shadow: 0 4px 0 #2ecc71;">MAÉN DEUI</button>
     </div>
 </div>
 
 <div class="game-container">
     <div class="header-info">
         <span class="badge" id="player-tag">PLAYER</span>
-        <span id="lives">❤️❤️❤️</span>
-        <span class="badge">SKOR: <span id="score">0</span></span>
+        <span id="lives" style="font-size:18px;">❤️❤️❤️</span>
+        <span class="badge" style="background:var(--primary)">SKOR: <span id="score">0</span></span>
     </div>
     <div class="timer-bar"><div id="timer-fill"></div></div>
+    <div class="question-label" id="q-label">Pilih Hartosna:</div>
     <div class="aksara-display" id="aksara-char">--</div>
     <div class="options" id="options-container"></div>
-    <div id="message" style="margin-top:12px; font-weight:bold; height:20px; font-size:13px; text-align:center;"></div>
+    
     <div class="ranking-section">
-        <div style="text-align:center; font-weight:bold; margin-bottom:8px; color:var(--primary)">🌎 TOP 5 GLOBAL SCORE</div>
+        <div class="ranking-title">🌎 TOP 5 GLOBAL SCORE</div>
         <ul id="ranking-list" style="list-style:none; padding:0; margin:0"></ul>
     </div>
+    
     <div id="goal-notification">👑 GLOBAL TOP: <span id="top-scorer">Loading...</span></div>
-    <div class="brand">BRAND: RULES | TIKTOK: MARQQUAN</div>
 </div>
 
 <script>
-    // Konfigurasi Firebase Sundaapp anjeun
     const firebaseConfig = {
         apiKey: "AIzaSyDlDickeQyYgQayXSMe3gtV6_2YHT7q5bw",
         authDomain: "sundaapp-2d378.firebaseapp.com",
+        databaseURL: "https://sundaapp-2d378-default-rtdb.asia-southeast1.firebasedatabase.app",
         projectId: "sundaapp-2d378",
         storageBucket: "sundaapp-2d378.firebasestorage.app",
         messagingSenderId: "139039839460",
@@ -70,25 +93,38 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const database = {
-        dasar: [
-            { c: 'ᮊᮤ', a: 'Ki' }, { c: 'ᮊᮥ', a: 'Ku' }, { c: 'ᮜᮤ', a: 'Li' }, { c: 'ᮜᮥ', a: 'Lu' },
-            { c: 'ᮝᮤ', a: 'Wi' }, { c: 'ᮝᮥ', a: 'Wu' }, { c: 'ᮏᮤ', a: 'Ji' }, { c: 'ᮏᮥ', a: 'Ju' },
-            { c: 'ᮙᮤ', a: 'Mi' }, { c: 'ᮙᮥ', a: 'Mu' }, { c: 'ᮔᮤ', a: 'Ni' }, { c: 'ᮔᮥ', a: 'Nu' },
-            { c: 'ᮌᮤ', a: 'Gi' }, { c: 'ᮌᮥ', a: 'Gu' }, { c: 'ᮜᮩ', a: 'Leu' }, { c: 'ᮜᮦ', a: 'Lè' }
-        ],
-        kecap: [
-            { c: 'ᮃᮘᮂ', a: 'Abah' }, { c: 'ᮝᮓᮠ᮪', a: 'Wadah' }, { c: 'ᮜᮧᮓᮧᮀ', a: 'Lodong' },
-            { c: 'ᮎᮛᮩᮠ᮪', a: 'Careuh' }, { c: 'ᮊᮜᮀᮊᮀ', a: 'Kalangkang' }, { c: 'ᮍᮑᮙ᮪', a: 'Nganyam' },
-            { c: 'ᮃᮘ᮪ᮓᮤ ᮒᮦᮠ᮪ ᮘᮤᮞ ᮓᮤᮃᮏᮁ ᮃᮊ᮪ᮞᮛ ᮞᮥᮔ᮪ᮓ', a: 'Abdi tèh bisa diajar aksara sunda' }
-        ]
-    };
+    // GENERATOR DATABASE AKSARA + RARANGKEN
+    function generateDatabase() {
+        const ngalagena = [
+            {c:'ᮊ', a:'Ka'}, {c:'ᮌ', a:'Ga'}, {c:'ᮍ', a:'Nga'}, {c:'ᮎ', a:'Ca'}, {c:'ᮏ', a:'Ja'},
+            {c:'ᮑ', a:'Nya'}, {c:'ᮒ', a:'Ta'}, {c:'ᮓ', a:'Da'}, {c:'ᮔ', a:'Na'}, {c:'ᮕ', a:'Pa'},
+            {c:'ᮘ', a:'Ba'}, {c:'ᮙ', a:'Ma'}, {c:'ᮚ', a:'Ya'}, {c:'ᮛ', a:'Ra'}, {c:'ᮜ', a:'La'},
+            {c:'ᮝ', a:'Wa'}, {c:'ᮞ', a:'Sa'}, {c:'ᮠ', a:'Ha'}, {c:'ᮖ', a:'Fa'}, {c:'ᮗ', a:'Va'},
+            {c:'ᮋ', a:'Qa'}, {c:'ᮟ', a:'Xa'}, {c:'ᮐ', a:'Za'}, {c:'ᮮ', a:'Kha'}, {c:'ᮯ', a:'Sha'}
+        ];
+        const rarangken = [
+            {c:'ᮤ', a:'i'}, {c:'ᮥ', a:'u'}, {c:'ᮦ', a:'é'}, {c:'ᮧ', a:'o'}, {c:'ᮩ', a:'eu'}, {c:'ᮨ', a:'e'}
+        ];
+        
+        let fullData = [];
+        ngalagena.forEach(item => {
+            fullData.push({ c: item.c, a: item.a }); // Dasar (Ka)
+            rarangken.forEach(r => {
+                fullData.push({ 
+                    c: item.c + r.c, 
+                    a: item.a.replace('a', r.a) 
+                }); // Kombinasi (Ki, Ku, Ke, Ko...)
+            });
+        });
+        return fullData;
+    }
 
-    let score = 0, lives = 3, level = 1, timeLeft = 100, timerId = null, currentQ = {}, playerName = "";
+    const dataAksara = generateDatabase();
+    let score = 0, lives = 3, level = 1, timeLeft = 100, timerId = null, currentQ = {}, playerName = "", isLatenQuestion = false;
 
     function savePlayerName() {
         const input = document.getElementById('player-name-input').value;
-        playerName = input.trim() || "Baraya";
+        playerName = input.trim() || "Pamaén";
         document.getElementById('player-tag').innerText = playerName.toUpperCase();
         document.getElementById('name-modal').style.display = 'none';
         listenGlobalRanking();
@@ -99,25 +135,39 @@
 
     function nextQuestion() {
         clearInterval(timerId); timeLeft = 100;
-        let pool = level < 3 ? [...database.dasar] : [...database.kecap];
-        currentQ = pool[Math.floor(Math.random() * pool.length)];
+        currentQ = dataAksara[Math.floor(Math.random() * dataAksara.length)];
+        isLatenQuestion = Math.random() > 0.5;
+        
         const display = document.getElementById('aksara-char');
-        display.innerText = currentQ.c;
-        display.style.fontSize = currentQ.c.length > 15 ? "18px" : (currentQ.c.length > 5 ? "32px" : "55px");
-        let speed = Math.max(50, 130 - (level * 5));
+        const label = document.getElementById('q-label');
+        
+        if (isLatenQuestion) {
+            display.innerText = currentQ.a;
+            label.innerText = "Mana Aksara Sundana?";
+            display.style.fontSize = "35px";
+        } else {
+            display.innerText = currentQ.c;
+            label.innerText = "Pilih Hartosna:";
+            display.style.fontSize = "50px";
+        }
+
+        // Rocket speed henteu gancang teuing [cite: 2026-02-08]
+        let speed = Math.max(70, 140 - (level * 5)); 
         timerId = setInterval(() => {
             timeLeft -= 0.5;
             document.getElementById('timer-fill').style.width = timeLeft + "%";
             if (timeLeft <= 0) handleResult(false);
         }, speed);
-        generateOptions(currentQ.a, pool);
+        generateOptions();
     }
 
-    function generateOptions(correct, pool) {
-        let choices = [correct];
+    function generateOptions() {
+        let correctValue = isLatenQuestion ? currentQ.c : currentQ.a;
+        let choices = [correctValue];
         while (choices.length < 4) {
-            let rand = pool[Math.floor(Math.random() * pool.length)].a;
-            if (!choices.includes(rand)) choices.push(rand);
+            let rand = dataAksara[Math.floor(Math.random() * dataAksara.length)];
+            let val = isLatenQuestion ? rand.c : rand.a;
+            if (!choices.includes(val)) choices.push(val);
         }
         choices.sort(() => Math.random() - 0.5);
         const container = document.getElementById('options-container');
@@ -125,7 +175,8 @@
         choices.forEach(c => {
             const btn = document.createElement('button');
             btn.innerText = c;
-            btn.onclick = () => handleResult(c === correct);
+            if (isLatenQuestion) btn.style.fontSize = "22px";
+            btn.onclick = () => handleResult(c === correctValue);
             container.appendChild(btn);
         });
     }
@@ -133,7 +184,7 @@
     function handleResult(isCorrect) {
         clearInterval(timerId);
         if (isCorrect) {
-            score += 15; level = Math.floor(score / 75) + 1;
+            score += 15; level = Math.floor(score / 100) + 1;
             nextQuestion();
         } else {
             lives--;
@@ -144,9 +195,20 @@
     }
 
     function endGame() {
+        clearInterval(timerId);
         db.ref('global_ranking').push({ name: playerName, score: score, ts: Date.now() });
-        alert("GAME OVER! Skor Global anjeun: " + score);
-        location.reload();
+        document.getElementById('modal-ranking').style.display = 'flex';
+        document.getElementById('final-status').innerText = "SKOR: " + score;
+        db.ref('global_ranking').orderByChild('score').limitToLast(5).once('value', (snap) => {
+            const list = document.getElementById('final-ranking-list');
+            list.innerHTML = "";
+            let data = [];
+            snap.forEach(c => { data.push(c.val()); });
+            data.reverse().forEach((r, i) => {
+                list.innerHTML += `<li style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee; font-weight:bold">
+                    <span>${i+1}. ${r.name}</span><span style="color:var(--primary)">${r.score}</span></li>`;
+            });
+        });
     }
 
     function updateStats() {
